@@ -280,7 +280,7 @@
 #define ETZKX_LISN3DSH_NAME		"lisn3dsh"
 #define ETZKX_KXTNK_NAME		"kxtnk-1000"
 
-#define ETZKX_CHARDEV_NAME		"accelerometer"
+#define ETZKX_CHARDEV_NAME		"etzkx_stm"
 
 struct etzkx_data {
 	struct i2c_client *client;
