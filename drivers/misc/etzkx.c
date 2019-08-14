@@ -278,10 +278,10 @@
 #define ETZKX_WIA_KXCNL			0x0B
 
 /* ETZKX accelerometer type names */
-#define ETZKX_LISN3DSH_NAME		"lisn3dsh"
-#define ETZKX_KXTNK_NAME		"kxtnk-1000"
+#define ETZKX_LISN3DSH_NAME		"lisn3dsh-accel"
+#define ETZKX_KXTNK_NAME		"kxtnk-1000-accel"
 
-#define ETZKX_CHARDEV_NAME		"etzkx_stm"
+#define ETZKX_CHARDEV_NAME		"etzkx_stm-accel"
 
 struct etzkx_data {
 	struct i2c_client *client;
@@ -1349,11 +1349,16 @@ static int etzkx_state_disable_stm2(struct etzkx_data *sdata, u8 stm_id)
 	return -EPERM;
 }
 
-static void etzkx_report_xyz(struct input_dev *dev, int *xyz)
+static void etzkx_report_xyz(struct input_dev *dev, int *xyz, ktime_t ts)
 {
 	input_report_abs(dev, ABS_X, xyz[0]);
 	input_report_abs(dev, ABS_Y, xyz[1]);
 	input_report_abs(dev, ABS_Z, xyz[2]);
+	input_event(dev, EV_SYN, SYN_TIME_SEC,
+			ktime_to_timespec(ts).tv_sec);
+	input_event(dev, EV_SYN, SYN_TIME_NSEC,
+			ktime_to_timespec(ts).tv_nsec);
+
 	input_sync(dev);
 }
 
@@ -1387,6 +1392,7 @@ static void etzkx_poll_read_work(struct work_struct *work)
 {
 	int err;
 	int xyz[3];
+	ktime_t ts;
 	struct etzkx_data *etzkx = container_of((struct delayed_work *) work,
 				struct etzkx_data, poll_read_work);
 
@@ -1397,7 +1403,8 @@ static void etzkx_poll_read_work(struct work_struct *work)
 		etzkx_state_disable_streaming(etzkx);
 		mutex_unlock(&etzkx->mutex);
 	} else {
-		etzkx_report_xyz(etzkx->input_dev, xyz);
+		ts = ktime_get_boottime();
+		etzkx_report_xyz(etzkx->input_dev, xyz, ts);
 	}
 
 	if (etzkx->drv_state & (ETZKX_STATE_STRM | ETZKX_STATE_SELF_TEST)) {
@@ -2061,6 +2068,23 @@ static const struct file_operations etzkx_chardev_fops = {
 	.unlocked_ioctl = etzkx_chardev_ioctl,
 };
 
+static char *getAccName(struct etzkx_data *sdata)
+{
+ 	switch (sdata->wai) {
+	case ETZKX_WIA_LISN3DSH:
+		return ETZKX_LISN3DSH_NAME;
+
+	case ETZKX_WIA_KXTNK:
+		return ETZKX_KXTNK_NAME;
+
+	case ETZKX_WIA_KXCNL:
+		return ETZKX_DEV_NAME;
+
+	default:
+		return "null";
+	}
+}
+
 static int etzkx_input_register_device(struct etzkx_data *sdata)
 {
 	int err;
@@ -2069,7 +2093,7 @@ static int etzkx_input_register_device(struct etzkx_data *sdata)
 	if (!sdata->input_dev)
 		return -ENOMEM;
 
-	sdata->input_dev->name       = ETZKX_DEV_NAME;
+	sdata->input_dev->name       = getAccName(sdata);
 	sdata->input_dev->id.bustype = BUS_I2C;
 	sdata->input_dev->id.vendor  = sdata->wai;
 	sdata->input_dev->id.version = sdata->hw_version;
@@ -2093,7 +2117,7 @@ static void etzkx_input_cleanup(struct etzkx_data *sdata)
 }
 
 static struct sensors_classdev acc_cdev = {
-	.name = "etzkx-accel",
+	.name = NULL,
 	.vendor = "Kionix",
 	.version = 1,
 	.handle = SENSORS_ACCELERATION_HANDLE,
@@ -2257,6 +2281,7 @@ static int etzkx_probe(struct i2c_client *client,
 	mutex_unlock(&sdata->mutex);
 
 	sdata->acc_cdev = acc_cdev;
+	sdata->acc_cdev.name = getAccName(sdata);
 	sdata->acc_cdev.sensors_enable = etzkx_cdev_enable_acc;
 	sdata->acc_cdev.sensors_poll_delay = etzkx_cdev_set_acc_delay;
 	err = sensors_classdev_register(&client->dev, &sdata->acc_cdev);
