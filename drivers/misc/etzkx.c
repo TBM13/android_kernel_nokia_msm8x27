@@ -2284,6 +2284,8 @@ static int etzkx_remove(struct i2c_client *client)
 {
 	struct etzkx_data *sdata = i2c_get_clientdata(client);
 
+	sensors_classdev_unregister(&sdata->acc_cdev);
+
 	sysfs_remove_group(&sdata->client->dev.kobj, &etzkx_attribute_group);
 
 	unregister_chrdev_region(etzkx_dev_number, 1);
