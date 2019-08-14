@@ -2048,7 +2048,7 @@ static const struct file_operations etzkx_chardev_fops = {
 	.read    = etzkx_chardev_read,
 	.write   = etzkx_chardev_write,
 	.poll    = etzkx_chardev_poll,
-	.unlocked_fioctl = etzkx_chardev_ioctl,
+	.unlocked_ioctl = etzkx_chardev_ioctl,
 };
 
 static int etzkx_input_register_device(struct etzkx_data *sdata)
