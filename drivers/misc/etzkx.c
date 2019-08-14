@@ -28,6 +28,7 @@
 #include <linux/interrupt.h>
 #include <linux/cdev.h>
 #include <linux/poll.h>
+#include <linux/sensors.h>
 #include <linux/i2c/etzkx.h>
 
 /* register map */
@@ -285,6 +286,7 @@
 struct etzkx_data {
 	struct i2c_client *client;
 	struct etzkx_platform_data *pdata;
+	struct sensors_classdev	acc_cdev;
 	struct mutex mutex;
 
 	struct input_dev *input_dev;
@@ -1585,6 +1587,28 @@ static ssize_t etzkx_sysfs_set_strm(struct device *dev,
 	return (err < 0) ? err : len;
 }
 
+static int etzkx_cdev_enable_acc(struct sensors_classdev *sensors_cdev, unsigned int enable)
+{
+	struct etzkx_data *sdata = container_of(sensors_cdev, struct etzkx_data, acc_cdev);
+
+	mutex_lock(&sdata->mutex);
+
+	if (enable)
+		etzkx_state_enable_streaming(sdata);
+	else
+		etzkx_state_disable_streaming(sdata);
+
+	mutex_unlock(&sdata->mutex);
+
+	return 0;
+}
+
+static int etzkx_cdev_set_acc_delay(struct sensors_classdev *sensors_cdev, unsigned int delay_msec)
+{
+	return 0;
+}
+
+
 static ssize_t etzkx_sysfs_get_odr(struct device *dev,
 				struct device_attribute *attr, char *buf)
 {
@@ -2024,7 +2048,7 @@ static const struct file_operations etzkx_chardev_fops = {
 	.read    = etzkx_chardev_read,
 	.write   = etzkx_chardev_write,
 	.poll    = etzkx_chardev_poll,
-	.unlocked_ioctl = etzkx_chardev_ioctl,
+	.unlocked_fioctl = etzkx_chardev_ioctl,
 };
 
 static int etzkx_input_register_device(struct etzkx_data *sdata)
@@ -2057,6 +2081,23 @@ static void etzkx_input_cleanup(struct etzkx_data *sdata)
 {
 	input_unregister_device(sdata->input_dev);
 }
+
+static struct sensors_classdev acc_cdev = {
+	.name = "etzkx",
+	.vendor = "Kionix",
+	.version = 1,
+	.handle = SENSORS_ACCELERATION_HANDLE,
+	.type = SENSOR_TYPE_ACCELEROMETER,
+	.resolution = "0.01",
+	.sensor_power = "0.25",
+	.min_delay = 2000,
+	.fifo_reserved_event_count = 0,
+	.fifo_max_event_count = 0,
+	.enabled = 0,
+	.delay_msec = 200,
+	.sensors_enable = NULL,
+	.sensors_poll_delay = NULL,
+};
 
 static int etzkx_probe(struct i2c_client *client,
 				const struct i2c_device_id *id)
@@ -2205,7 +2246,20 @@ static int etzkx_probe(struct i2c_client *client,
 
 	mutex_unlock(&sdata->mutex);
 
+	sdata->acc_cdev = acc_cdev;
+	sdata->acc_cdev.sensors_enable = etzkx_cdev_enable_acc;
+	sdata->acc_cdev.sensors_poll_delay = etzkx_cdev_set_acc_delay;
+	err = sensors_classdev_register(&client->dev, &sdata->acc_cdev);
+	if (err) {
+		dev_err(&client->dev, "sensors class register failed.\n");
+		goto err_register_acc_cdev;
+	}
+
+
 	return 0;
+
+err_register_acc_cdev:
+	sensors_classdev_unregister(&sdata->acc_cdev);
 
 free_irq2:
 	if (sdata->pdata->irq2)
