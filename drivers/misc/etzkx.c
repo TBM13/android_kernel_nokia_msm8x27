@@ -2081,7 +2081,7 @@ static char *getAccName(struct etzkx_data *sdata)
 		return ETZKX_DEV_NAME;
 
 	default:
-		return "null";
+		return "unknown-accel";
 	}
 }
 
