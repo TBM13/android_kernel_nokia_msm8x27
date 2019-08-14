@@ -281,7 +281,7 @@
 #define ETZKX_LISN3DSH_NAME		"lisn3dsh"
 #define ETZKX_KXTNK_NAME		"kxtnk-1000"
 
-#define ETZKX_CHARDEV_NAME		"etzkx_stm"
+#define ETZKX_CHARDEV_NAME		"etzkx_stm-accel"
 
 struct etzkx_data {
 	struct i2c_client *client;
@@ -2093,7 +2093,7 @@ static void etzkx_input_cleanup(struct etzkx_data *sdata)
 }
 
 static struct sensors_classdev acc_cdev = {
-	.name = "etzkx-accel",
+	.name = ETZKX_CHARDEV_NAME,
 	.vendor = "Kionix",
 	.version = 1,
 	.handle = SENSORS_ACCELERATION_HANDLE,
