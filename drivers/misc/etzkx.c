@@ -2083,7 +2083,7 @@ static void etzkx_input_cleanup(struct etzkx_data *sdata)
 }
 
 static struct sensors_classdev acc_cdev = {
-	.name = "etzkx",
+	.name = "etzkx-accel",
 	.vendor = "Kionix",
 	.version = 1,
 	.handle = SENSORS_ACCELERATION_HANDLE,
