@@ -2122,6 +2122,7 @@ static struct sensors_classdev acc_cdev = {
 	.version = 1,
 	.handle = SENSORS_ACCELERATION_HANDLE,
 	.type = SENSOR_TYPE_ACCELEROMETER,
+	.max_range = "0.5",
 	.resolution = "0.01",
 	.sensor_power = "0.25",
 	.min_delay = 2000,
