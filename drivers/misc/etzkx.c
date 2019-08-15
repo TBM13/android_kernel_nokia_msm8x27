@@ -292,6 +292,7 @@ struct etzkx_data {
 	struct delayed_work poll_read_work;
 
 	struct sensors_classdev	acc_cdev;
+
 	u8 wai;
 	u8 hw_version;
 	u8 drv_state;
@@ -582,8 +583,6 @@ static int etzkx_state_go_stdby(struct etzkx_data *sdata)
 {
 	s32 cntl1_reg;
 
-	dev_info(&sdata->client->dev, "Go stdby\n");
-
 	cntl1_reg = i2c_smbus_read_byte_data(sdata->client, ETZKX_REG_CNTL1);
 	if (cntl1_reg < 0)
 		return cntl1_reg;
@@ -604,8 +603,6 @@ static int etzkx_state_go_stdby(struct etzkx_data *sdata)
 static int etzkx_state_go_active(struct etzkx_data *sdata)
 {
 	s32 reg;
-
-	dev_info(&sdata->client->dev, "Go active\n");
 
 	switch (sdata->drv_state) {
 	case ETZKX_STATE_STDBY:
@@ -641,8 +638,6 @@ static int etzkx_state_enable_streaming(struct etzkx_data *sdata)
 {
 	int err;
 
-	dev_info(&sdata->client->dev, "Enable streaming\n");
-
 	if (sdata->drv_state & ETZKX_STATE_STRM)
 		return 0;
 
@@ -677,8 +672,6 @@ static int etzkx_state_enable_streaming(struct etzkx_data *sdata)
 static int etzkx_state_disable_streaming(struct etzkx_data *sdata)
 {
 	int err;
-
-	dev_info(&sdata->client->dev, "Disable streaming\n");
 
 	switch (sdata->drv_state) {
 	case ETZKX_STATE_POWER_OFF:
@@ -1606,8 +1599,6 @@ static int etzkx_cdev_enable_acc(struct sensors_classdev *sensors_cdev, unsigned
 {
 	struct etzkx_data *sdata = container_of(sensors_cdev, struct etzkx_data, acc_cdev);
 
-	dev_info(&sdata->client->dev, "Enable acc - %d\n", enable);
-
 	mutex_lock(&sdata->mutex);
 
 	if (enable)
@@ -2122,6 +2113,7 @@ static struct sensors_classdev acc_cdev = {
 	.version = 1,
 	.handle = SENSORS_ACCELERATION_HANDLE,
 	.type = SENSOR_TYPE_ACCELEROMETER,
+	.max_range = "1",
 	.resolution = "0.01",
 	.sensor_power = "0.25",
 	.min_delay = 2000,
