@@ -1371,12 +1371,12 @@ static int etzkx_read_xyz(struct etzkx_data *sdata, int *xyz)
 	raw_xyz[1] = ((s16) ((reg_xyz[3] << 8) | reg_xyz[2]));
 	raw_xyz[2] = ((s16) ((reg_xyz[5] << 8) | reg_xyz[4]));
 
-	xyz[0] = ((sdata->pdata->x_negate) ? (raw_xyz[0])
-		   : (-raw_xyz[0]));
-	xyz[1] = ((sdata->pdata->y_negate) ? (raw_xyz[1])
-		   : (-raw_xyz[1]));
-	xyz[2] = ((sdata->pdata->z_negate) ? (raw_xyz[2])
-		   : (-raw_xyz[2]));
+	xyz[0] = ((sdata->pdata->x_negate) ? (raw_xyz[0] * 30)
+		   : (-raw_xyz[0] * 30));
+	xyz[1] = ((sdata->pdata->y_negate) ? (raw_xyz[1] * 30)
+		   : (-raw_xyz[1] * 30));
+	xyz[2] = ((sdata->pdata->z_negate) ? (-raw_xyz[2] * 30)
+		   : (raw_xyz[2] * 30));
 
 	return 0;
 }
@@ -2113,7 +2113,7 @@ static struct sensors_classdev acc_cdev = {
 	.version = 1,
 	.handle = SENSORS_ACCELERATION_HANDLE,
 	.type = SENSOR_TYPE_ACCELEROMETER,
-	.max_range = "1",
+	.max_range = "19",
 	.resolution = "0.01",
 	.sensor_power = "0.25",
 	.min_delay = 2000,
