@@ -2011,11 +2011,11 @@ static int etzkx_init( void ) {
 static struct etzkx_platform_data etzkx_platformdata = {
 	.init = &etzkx_init,
 	.x_map = 0,
-	.y_map = 0,
-	.z_map = 0,
-	.x_negate = 0,
-	.y_negate = 0,
-	.z_negate = 0,
+	.y_map = 1,
+	.z_map = 2,
+	.x_negate = 1,
+	.y_negate = 1,
+	.z_negate = 1,
 };
 
 static struct i2c_board_info etzkx_i2c_devices[] = {
