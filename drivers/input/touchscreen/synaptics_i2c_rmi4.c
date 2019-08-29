@@ -748,6 +748,22 @@ static int synaptics_rmi4_f11_abs_report(struct synaptics_rmi4_data *rmi4_data,
 			wy = (data[3] >> 4) & MASK_4BIT;
 			z = data[4];
 
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_UNOFFICIAL
+			x = (data[1] << 4) | ((data[2] >> 4) & MASK_4BIT);
+			y = (data[2] << 4) | (data[2] & MASK_4BIT);
+
+			if (rmi4_data->old_x == x)
+				input_report_abs(rmi4_data->input_dev, ABS_MT_POSITION_X, (x + 1));
+			if (rmi4_data->old_y == y)
+				input_report_abs(rmi4_data->input_dev, ABS_MT_POSITION_Y, (y + 1));			
+
+			rmi4_data->old_x = x;
+			rmi4_data->old_y = y;
+
+			wx = (data[3] >> 4) & MASK_4BIT;
+			wy = (data[3] & MASK_4BIT);
+#endif
+
 			if (rmi4_data->flip_x)
 				x = rmi4_data->sensor_max_x - x;
 			if (rmi4_data->flip_y)
