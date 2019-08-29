@@ -1443,7 +1443,6 @@ static int synaptics_rmi4_query_device_info(
 				__func__, retval);
 		return retval;
 	}
-	dev_info(&rmi4_data->i2c_client->dev, "%s: Firmware: %02hX%02hX%02hX\n", __func__, rmi->build_id[2], rmi->build_id[1], rmi->build_id[0]);
 	return 0;
 }
 
