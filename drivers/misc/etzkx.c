@@ -1367,7 +1367,7 @@ static int etzkx_read_xyz(struct etzkx_data *sdata, int *xyz)
 	if (err != 6)
 		return -EIO;
 
-	raw_xyz[0] = ((s16) ((reg_xyz[1] << 8) | reg_xyz[0]) * 30);
+	raw_xyz[0] = ((s16) ((reg_xyz[1] << 8) | reg_xyz[0]) * 33);
 	raw_xyz[1] = ((s16) ((reg_xyz[3] << 8) | reg_xyz[2]) * 30);
 	raw_xyz[2] = ((s16) ((reg_xyz[5] << 8) | reg_xyz[4]) * 30);
 
