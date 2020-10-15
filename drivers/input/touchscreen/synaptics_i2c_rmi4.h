@@ -230,10 +230,6 @@ struct synaptics_rmi4_data {
 			unsigned char *data, unsigned short length);
 	int (*irq_enable)(struct synaptics_rmi4_data *rmi4_data, bool enable);
 	int (*reset_device)(struct synaptics_rmi4_data *rmi4_data);
-#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_UNOFFICIAL
-	int old_x;
-	int old_y;
-#endif
 #ifdef CONFIG_FB
 	struct notifier_block fb_notif;
 #else
