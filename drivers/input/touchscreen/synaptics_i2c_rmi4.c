@@ -747,7 +747,6 @@ static int synaptics_rmi4_f11_abs_report(struct synaptics_rmi4_data *rmi4_data,
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_UNOFFICIAL
 			x = (data[1] << 4) | ((data[2] >> 4) & MASK_4BIT);
 			y = (data[2] << 4) | (data[2] & MASK_4BIT);
-
 			wx = (data[3] >> 4) & MASK_4BIT;
 			wy = (data[3] & MASK_4BIT);
 #else
@@ -1114,10 +1113,15 @@ static int synaptics_rmi4_f11_init(struct synaptics_rmi4_data *rmi4_data,
 		return retval;
 
 	/* Maximum number of fingers supported */
+	
+	#ifndef CONFIG_TOUCHSCREEN_SYNAPTICS_UNOFFICIAL
 	if ((query[1] & MASK_3BIT) <= 4)
 		fhandler->num_of_data_points = (query[1] & MASK_3BIT) + 1;
 	else if ((query[1] & MASK_3BIT) == 5)
 		fhandler->num_of_data_points = 10;
+	#else
+		fhandler->num_of_data_points = 2; // Hack! Sets the number of supported fingers to 2. 
+	#endif
 
 	rmi4_data->num_of_fingers = fhandler->num_of_data_points;
 
